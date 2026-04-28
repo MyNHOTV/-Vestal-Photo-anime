@@ -5,10 +5,8 @@ import 'package:flutter_quick_base/core/routes/app_routes.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/storage/local_storage_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_2_floor_wrapper.dart';
 import 'package:get/get.dart';
 
 // Model cho ngôn ngữ
@@ -517,41 +515,6 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
             ),
           ],
         ),
-        bottomNavigationBar: Obx(() {
-          // Ẩn native ad nếu mất mạng
-          if (Get.isRegistered<NetworkService>()) {
-            if (!NetworkService.to.isConnected.value) {
-              return const SizedBox.shrink();
-            }
-          }
-
-          if (!RemoteConfigService.shared.adsEnabled) {
-            return const SizedBox.shrink();
-          }
-          return _selectedLanguage != null
-              ? NativeAd2FloorWrapper(
-                  factoryId: 'native_medium_image_top_2',
-                  key: const Key('2f_native_language_select'),
-                  primaryUniqueKey: '2f_native_language_select',
-                  fallbackUniqueKey: 'native_language_select',
-                  enable2Floor: RemoteConfigService
-                      .shared.nativeLanguageSelect2FloorEnabled,
-                  buttonColor: DynamicThemeService.shared.getActiveColorADS(),
-                  // adBackgroundColor:
-                  //     DynamicThemeService.shared.getActiveColor(),
-                )
-              : NativeAd2FloorWrapper(
-                  factoryId: 'native_medium_image_top_2',
-                  key: const Key('2f_native_language'),
-                  primaryUniqueKey: '2f_native_language',
-                  fallbackUniqueKey: 'native_language',
-                  enable2Floor:
-                      RemoteConfigService.shared.nativeLanguage2FloorEnabled,
-                  buttonColor: AppColors.colorA9A9A9,
-                  // adBackgroundColor:
-                  //     DynamicThemeService.shared.getActiveColor(),
-                );
-        }),
       ),
     );
   }

@@ -1,15 +1,11 @@
-import 'dart:ui';
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/constants/app_colors.dart';
 import 'package:flutter_quick_base/core/constants/app_fonts.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
-import 'package:flutter_quick_base/core/services/ads_service.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_button.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
 import 'package:flutter_quick_base/core/widgets/style_selection_dialog.dart';
@@ -56,9 +52,6 @@ class _HomeHeaderContentState extends State<_HomeHeaderContent> {
   int _currentCarouselIndex = 0;
   final HomeController _homeController = Get.find<HomeController>();
 
-  // Cache NativeAdWidget instance để chỉ tạo 1 lần
-  Widget? _cachedNativeAdWidget;
-
   // Lấy carousel items từ HomeController (bao gồm sliders từ API)
   List<CarouselStyleItemModel> get _carouselItems {
     final sliders = _homeController.sliders.toList();
@@ -94,12 +87,6 @@ class _HomeHeaderContentState extends State<_HomeHeaderContent> {
   // Kiểm tra xem index có phải là native ad không
   bool _isNativeAdIndex(int index) {
     return false;
-    final remoteConfig = RemoteConfigService.shared;
-    if (!remoteConfig.adsEnabled || !remoteConfig.nativeSliderEnabled) {
-      return false;
-    }
-    // Native ad ở vị trí thứ 2 (index 1)
-    return index == 1 && _carouselItems.length > 1;
   }
 
   CarouselStyleItemModel? _getCarouselItemAt(int index) {
@@ -154,19 +141,7 @@ class _HomeHeaderContentState extends State<_HomeHeaderContent> {
         genController.setPreviousRoute('home');
         AnalyticsService.shared.styleClick(style.name);
 
-        // Navigate to generate screen
-        AdService().loadInterstitial(
-          type: 'inter_new',
-          onComplete: () {
-            AdService().showInterstitial(
-              'inter_new',
-              onComplete: () async {
-                await Future.delayed(const Duration(milliseconds: 100));
-                Get.toNamed(AppRoutes.uploadImage, arguments: style);
-              },
-            );
-          },
-        );
+        Get.toNamed(AppRoutes.uploadImage, arguments: style);
       },
     );
   }

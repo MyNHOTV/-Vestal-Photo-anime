@@ -1,24 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
-import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
 import 'package:flutter_quick_base/core/services/image_picker_service.dart';
-import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
-import 'package:flutter_quick_base/core/utils/export_extensions.dart';
 import 'package:flutter_quick_base/core/widgets/app_progress_bar.dart';
 import 'package:flutter_quick_base/core/widgets/appbar/custom_transparent_appbar.dart';
-import 'package:flutter_quick_base/core/widgets/card_widget/art_item_widget.dart';
 import 'package:flutter_quick_base/core/widgets/dotted_border_wrapper.dart';
 import 'package:flutter_quick_base/core/widgets/loading_widget.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_2_floor_wrapper.dart';
 import 'package:flutter_quick_base/features/home/data/model/image_style_model.dart';
 import 'package:flutter_quick_base/features/image_generation/presentation/controllers/image_generation_controller.dart';
 import 'package:get/get.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../../core/constants/export_constants.dart';
-import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_icon.dart';
 
 class UploadImageScreen extends StatefulWidget {
@@ -208,41 +201,8 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
                   ],
                 ),
               ),
-              //ADS HERE
               const SizedBox(height: AppSizes.spacingM),
-              // Native Ad Widget
-              Spacer(),
-              Obx(() {
-                // Ẩn native ad nếu mất mạng
-                if (Get.isRegistered<NetworkService>()) {
-                  if (!NetworkService.to.isConnected.value) {
-                    return const SizedBox.shrink();
-                  }
-                }
-
-                if (!RemoteConfigService.shared.adsEnabled) {
-                  return const SizedBox.shrink();
-                }
-                final bool hasImage =
-                    _genController.selectedImagePath.value.isNotEmpty;
-                // Nếu đã chọn ảnh thì button màu accent, chưa chọn thì màu xám
-                return NativeAd2FloorWrapper(
-                  factoryId: 'native_medium_image_top_2',
-                  key: Key(
-                    hasImage
-                        ? 'native_upload_image_selected'
-                        : 'native_upload_image',
-                  ),
-                  primaryUniqueKey: 'native_upload_image',
-                  fallbackUniqueKey: 'native_upload_image',
-                  enable2Floor: false,
-                  buttonColor: hasImage
-                      ? DynamicThemeService.shared.getActiveColorADS()
-                      : AppColors.colorA9A9A9,
-                  adBackgroundColor:
-                      DynamicThemeService.shared.getActiveColorADS(),
-                );
-              }),
+              const Spacer(),
             ],
           ),
         ),

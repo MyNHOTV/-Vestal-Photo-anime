@@ -10,9 +10,7 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../constants/export_constants.dart';
-import '../routes/app_routes.dart';
 import '../widgets/app_icon.dart';
-import 'ads_service.dart';
 
 enum NetworkContext {
   splash, // Từ splash screen
@@ -142,15 +140,6 @@ class NetworkService extends GetxService with WidgetsBindingObserver {
         hideBlockingOverlay();
         _isDialogOpen = false;
         _isInAppBlocked = false; // Reset flag khi có mạng lại
-
-        // Retry load app open ad nếu đang pending
-        if (Get.isRegistered<AdService>()) {
-          try {
-            AdService().retryAppOpenIfPending();
-          } catch (e) {
-            debugPrint('Failed to retry app open ad: $e');
-          }
-        }
       }
     });
   }

@@ -57,7 +57,8 @@ class ImageGenerationRemoteDataSourceImpl extends BaseClient
     if (!kDebugMode) {
       final appCheckToken = await AppCheckService.shared.getToken();
       if (appCheckToken != null) {
-        headers['X-Firebase-ProjectID'] = 'photo-anime-b288f';
+        // TODO: Replace with your Firebase project ID
+        headers['X-Firebase-ProjectID'] = '';
         headers['X-Firebase-AppCheck'] = appCheckToken;
       }
     }

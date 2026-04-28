@@ -1,12 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
 import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/storage/local_storage_service.dart';
 import 'package:flutter_quick_base/features/home/data/datasources/home_data_source.dart';
 import 'package:get/get.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../../image_generation/presentation/controllers/image_generation_controller.dart';
 import '../../data/model/image_style_model.dart';
@@ -21,11 +18,6 @@ class HomeController extends GetxController {
   final RxList<ImageStyleModel> imageStyles = <ImageStyleModel>[].obs;
   final RxList<ImageStyleGroupModel> styleGroups = <ImageStyleGroupModel>[].obs;
   final RxList<CarouselStyleItemModel> sliders = <CarouselStyleItemModel>[].obs;
-
-  // Native ad preload cho slider
-  NativeAd? _preloadedNativeSliderAd;
-  final RxBool isPreloadedNativeSliderAdLoaded = false.obs;
-  Worker? _networkWorker; // Worker để listen network changes
 
   static const String _hasShownFirstTimeKey =
       'home_has_shown_first_time'; // Key cho storage
@@ -66,7 +58,6 @@ class HomeController extends GetxController {
       _loadStyles();
       _loadStyleGroups();
       _loadSliders();
-      _preloadNativeSliderAd();
       // Fetch async từ API
       _fetchDataFromAPI();
     } else {
@@ -76,15 +67,11 @@ class HomeController extends GetxController {
           _loadStyles();
           _loadStyleGroups();
           _loadSliders();
-          _preloadNativeSliderAd();
           // Fetch async từ API
           _fetchDataFromAPI();
         }
       });
     }
-
-    // Listen to network changes để retry preload ad khi mạng được khôi phục
-    _listenToNetworkChanges();
 
     // Listen to Remote Config changes
     ever(RemoteConfigService.shared.reverseStylesOrder, (bool shouldShuffle) {
@@ -163,105 +150,8 @@ class HomeController extends GetxController {
     }
   }
 
-  bool _isPreloading = false;
-  void _preloadNativeSliderAd() {
-    final remoteConfig = RemoteConfigService.shared;
-
-    // Kiểm tra xem có enabled không
-    if (!remoteConfig.adsEnabled || !remoteConfig.nativeSliderEnabled) {
-      print('🚫 Native slider ad disabled, skipping preload');
-      return;
-    }
-
-    // Nếu đã có ad loaded, không cần preload lại
-    if (_preloadedNativeSliderAd != null &&
-        isPreloadedNativeSliderAdLoaded.value) {
-      print('✅ Native slider ad already cached, skipping preload');
-      return;
-    }
-
-    // Tránh preload trùng lặp
-    if (_isPreloading) return;
-
-    // Đảm bảo có mạng
-    if (!NetworkService.to.isConnected.value) {
-      print('🚫 No network, skipping native slider ad preload');
-      return;
-    }
-
-    // Lấy adUnitId
-    final adUnitId = Platform.isAndroid
-        ? remoteConfig.androidNativeSlider
-        : remoteConfig.iosNativeSlider;
-
-    if (adUnitId.isEmpty) {
-      print('⚠️ Native Slider Ad Unit ID is empty');
-      return;
-    }
-
-    print('🚀 Preloading Native Slider Ad...');
-    _isPreloading = true;
-
-    // Tạo ad instance mới và gọi load ngay lập tức
-    final ad = NativeAd(
-      adUnitId: adUnitId,
-      factoryId: 'native_small_image_bottom_2',
-      request: const AdRequest(),
-      listener: NativeAdListener(
-        onAdLoaded: (loadedAd) {
-          print("✅ Preloaded Native Slider Ad Loaded!");
-          isPreloadedNativeSliderAdLoaded.value = true;
-          _isPreloading = false;
-        },
-        onAdFailedToLoad: (failedAd, error) {
-          print("❌ Preloaded Native Slider Ad Failed: ${error.message}");
-          failedAd.dispose();
-          _isPreloading = false;
-          _preloadedNativeSliderAd = null;
-          isPreloadedNativeSliderAdLoaded.value = false;
-          // Retry sau 3 giây nếu có mạng
-          Future.delayed(const Duration(seconds: 3), () {
-            if (NetworkService.to.isConnected.value &&
-                !isPreloadedNativeSliderAdLoaded.value &&
-                !_isPreloading) {
-              print('🔄 Retrying Native Slider Ad preload...');
-              _preloadNativeSliderAd();
-            }
-          });
-        },
-      ),
-    );
-
-    // QUAN TRỌNG: Gán ad trước khi gọi load để đảm bảo field không null
-    _preloadedNativeSliderAd = ad;
-    ad.load();
-  }
-
-  NativeAd? get preloadedNativeSliderAd => _preloadedNativeSliderAd;
-
-  // Listen to network changes để retry preload ad khi mạng được khôi phục
-  void _listenToNetworkChanges() {
-    if (!Get.isRegistered<NetworkService>()) return;
-
-    _networkWorker = ever(NetworkService.to.isConnected, (bool isConnected) {
-      final remoteConfig = RemoteConfigService.shared;
-
-      // Nếu mạng được bật lại và ad chưa loaded, thì preload ngay
-      if (isConnected &&
-          remoteConfig.adsEnabled &&
-          remoteConfig.nativeSliderEnabled &&
-          !isPreloadedNativeSliderAdLoaded.value &&
-          _preloadedNativeSliderAd == null) {
-        print('🌐 Network restored, retrying Native Slider Ad preload...');
-        _preloadNativeSliderAd();
-      }
-    });
-  }
-
   @override
   void onClose() {
-    _networkWorker?.dispose();
-    _preloadedNativeSliderAd?.dispose();
     super.onClose();
   }
 }

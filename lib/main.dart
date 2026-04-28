@@ -7,8 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/app_check_service.dart';
-import 'package:flutter_quick_base/core/services/appmetrica_service.dart';
-
 import 'package:flutter_quick_base/core/services/crashlytics_service.dart';
 import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/services/screen_protector.dart';
@@ -33,6 +31,12 @@ Future<void> main() async {
 
     await EasyLocalization.ensureInitialized();
 
+    // Flavors via --dart-define
+    const flavor = String.fromEnvironment('FLAVOR', defaultValue: 'dev');
+    const enableLog = bool.fromEnvironment('ENABLE_LOG', defaultValue: true);
+
+    await dotenv.load(fileName: _envFileFor(flavor));
+
     try {
       // Initialize Firebase
       await Firebase.initializeApp(
@@ -43,15 +47,6 @@ Future<void> main() async {
       // Initialize Crashlytics
       await CrashlyticsService.shared.init();
       CrashlyticsService.shared.log('App started');
-      // Initialize AppMetrica
-      await AppMetricaService.shared.init(
-        apiKey: "a6107e11-82c9-4080-99f5-8da6c857b4d8",
-      );
-      // Initialize AppsFlyer
-      // await AppsFlyerService.shared.init(
-      //   devKey: dotenv.env['APPSFLYER_DEV_KEY'] ?? '',
-      //   appId: dotenv.env['APPSFLYER_APP_ID'] ?? '',
-      // );
       // Initialize App Check
       await AppCheckService.shared.init();
     } catch (e, stack) {
@@ -93,12 +88,6 @@ Future<void> main() async {
         });
       }
     });
-
-    // Flavors via --dart-define
-    const flavor = String.fromEnvironment('FLAVOR', defaultValue: 'dev');
-    const enableLog = bool.fromEnvironment('ENABLE_LOG', defaultValue: true);
-
-    await dotenv.load(fileName: _envFileFor(flavor));
 
     AppConfig.init(
       flavor: flavor,

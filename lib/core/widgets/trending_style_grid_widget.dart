@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/constants/app_colors.dart';
@@ -7,11 +5,8 @@ import 'package:flutter_quick_base/core/constants/app_fonts.dart';
 import 'package:flutter_quick_base/core/constants/app_sizes.dart';
 import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
 import 'package:flutter_quick_base/features/home/data/model/image_style_model.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 class TrendingStyleGridWidget extends StatelessWidget {
   const TrendingStyleGridWidget({
@@ -84,12 +79,6 @@ class TrendingStyleGridWidget extends StatelessWidget {
                   ),
                 ),
 
-              // Native Ad sau 2 items đầu
-              if (displayStyles.length >= 2)
-                SliverToBoxAdapter(
-                  child: _buildNativeAd(context),
-                ),
-
               // Các phần tử còn lại (từ index 2 trở đi)
               if (displayStyles.length > 2)
                 SliverGrid(
@@ -113,34 +102,6 @@ class TrendingStyleGridWidget extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Widget _buildNativeAd(BuildContext context) {
-    return Obx(() {
-      if (!RemoteConfigService.shared.adsEnabled &&
-          !RemoteConfigService.shared.nativeStyleEnabled) {
-        return const SizedBox.shrink();
-      }
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingL),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: NativeAdWidget(
-            margin: EdgeInsets.zero,
-            padding: EdgeInsets.zero,
-            uniqueKey: 'native_style',
-            factoryId: 'native_small_image_top',
-            hasBorder: true,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.colorAE8CF5, width: 0.5),
-            backgroundColor: AppColors.surface,
-            buttonColor: DynamicThemeService.shared.getActiveColorADS(),
-            adBackgroundColor: DynamicThemeService.shared.getActiveColorADS(),
-            height: 210,
-          ),
-        ),
-      );
-    });
   }
 
   Widget _buildStyleCard(ImageStyleModel style, bool isSelected) {

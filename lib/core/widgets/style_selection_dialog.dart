@@ -2,14 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/constants/export_constants.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
-import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_button.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
 import 'package:flutter_quick_base/core/widgets/cached_image_widget.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
 import 'package:flutter_quick_base/features/home/data/model/image_style_model.dart';
-import 'package:get/get.dart';
 
 class StyleSelectionDialog extends StatelessWidget {
   const StyleSelectionDialog({
@@ -108,27 +104,6 @@ class StyleSelectionDialog extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSizes.spacingL),
-                Obx(() {
-                  if (!RemoteConfigService.shared.adsEnabled ||
-                      !RemoteConfigService.shared.nativeChooseStyleEnabled) {
-                    return const SizedBox.shrink();
-                  }
-                  return NativeAdWidget(
-                    uniqueKey: 'native_choose_style',
-                    factoryId: 'native_small_image_top',
-                    hasBorder: true,
-                    borderRadius: BorderRadius.circular(5),
-                    border:
-                        Border.all(color: AppColors.colorAE8CF5, width: 0.5),
-                    backgroundColor: AppColors.surface,
-                    height: 210,
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.spacingM),
-                    padding: EdgeInsets.zero,
-                    adBackgroundColor:
-                        DynamicThemeService.shared.getActiveColorADS(),
-                  );
-                }),
 
                 // Choose this style button với gradient
                 Padding(

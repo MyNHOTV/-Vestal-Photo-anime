@@ -1,24 +1,16 @@
-import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/constants/export_constants.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
-import 'package:flutter_quick_base/core/services/ads_service.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
-import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
 import 'package:flutter_quick_base/core/services/image_picker_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_button.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
 import 'package:flutter_quick_base/core/widgets/appbar/custom_transparent_appbar.dart';
 import 'package:flutter_quick_base/core/widgets/card_widget/art_item_widget.dart';
-import 'package:flutter_quick_base/core/widgets/collapsible_banner_ad_widget.dart';
-import 'package:flutter_quick_base/core/widgets/grid_background.dart';
 import 'package:flutter_quick_base/core/widgets/loading_widget.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_2_floor_wrapper.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
 import 'package:flutter_quick_base/features/home/data/datasources/home_data_source.dart';
 import 'package:flutter_quick_base/features/home/data/model/image_style_group_model.dart';
 import 'package:flutter_quick_base/features/image_generation/presentation/controllers/image_generation_controller.dart';
@@ -477,36 +469,6 @@ class _GenerationScreenState extends State<GenerationScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Obx(() {
-          // Ẩn native ad nếu mất mạng
-          if (Get.isRegistered<NetworkService>()) {
-            if (!NetworkService.to.isConnected.value) {
-              return const SizedBox.shrink();
-            }
-          }
-
-          if (!RemoteConfigService.shared.adsEnabled) {
-            return const SizedBox.shrink();
-          }
-
-          // Native ad với key riêng cho generation screen
-          return NativeAdWidget(
-            margin: const EdgeInsets.symmetric(
-              horizontal: AppSizes.spacingM,
-              vertical: AppSizes.spacingM,
-            ),
-            padding: EdgeInsets.zero,
-            uniqueKey: 'native_style',
-            factoryId: 'native_small_image_top',
-            hasBorder: true,
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: AppColors.colorAE8CF5, width: 0.5),
-            backgroundColor: AppColors.surface,
-            buttonColor: DynamicThemeService.shared.getActiveColorADS(),
-            adBackgroundColor: DynamicThemeService.shared.getActiveColorADS(),
-            height: 210,
-          );
-        }),
         // Buttons
         Padding(
           padding: const EdgeInsets.symmetric(
@@ -577,22 +539,10 @@ class _GenerationScreenState extends State<GenerationScreen> {
     // Lấy style hiện tại và tìm group của nó
     final currentStyle = _controller.selectedStyle.value;
     if (currentStyle == null) {
-      // Nếu không có style, mở màn hình list style bình thường
-      AdService().loadInterstitial(
-        type: 'inter_change',
-        onComplete: () {
-          AdService().showInterstitial(
-            'inter_change',
-            onComplete: () async {
-              await Future.delayed(const Duration(milliseconds: 100));
-              Get.toNamed(AppRoutes.listStyle, arguments: {
-                'isView': false,
-                'fromGeneration': true,
-              });
-            },
-          );
-        },
-      );
+      Get.toNamed(AppRoutes.listStyle, arguments: {
+        'isView': false,
+        'fromGeneration': true,
+      });
       return;
     }
 
@@ -610,25 +560,14 @@ class _GenerationScreenState extends State<GenerationScreen> {
     final stylesToShow = currentGroup?.styles ?? _controller.imageStyles.value;
     final groupName = currentGroup?.name ?? tr('image_style');
 
-    AdService().loadInterstitial(
-      type: 'inter_change',
-      onComplete: () {
-        AdService().showInterstitial(
-          'inter_change',
-          onComplete: () async {
-            await Future.delayed(const Duration(milliseconds: 100));
-            Get.toNamed(AppRoutes.listStyle, arguments: {
-              'isView': false,
-              'fromGeneration': true,
-              'styles': stylesToShow,
-              'groupName': groupName,
-              'initialSelectedIndex':
-                  stylesToShow.indexWhere((s) => s.id == currentStyle.id),
-            });
-          },
-        );
-      },
-    );
+    Get.toNamed(AppRoutes.listStyle, arguments: {
+      'isView': false,
+      'fromGeneration': true,
+      'styles': stylesToShow,
+      'groupName': groupName,
+      'initialSelectedIndex':
+          stylesToShow.indexWhere((s) => s.id == currentStyle.id),
+    });
   }
 
   Future<void> _navigateToImageSelection() async {
@@ -648,21 +587,5 @@ class _GenerationScreenState extends State<GenerationScreen> {
 
       AnalyticsService.shared.actionUploadImageBackWithImage();
     } catch (e) {}
-    // AnalyticsService.shared.actionChangeImage();
-    // final hasNetwork = await NetworkService.to.checkNetworkForInAppFunction();
-    // if (!hasNetwork) return;
-    //
-    // AdService().loadInterstitial(
-    //   type: 'inter_change',
-    //   onComplete: () {
-    //     AdService().showInterstitial(
-    //       'inter_change',
-    //       onComplete: () async {
-    //         await Future.delayed(const Duration(milliseconds: 100));
-    //         Get.toNamed(AppRoutes.editImage);
-    //       },
-    //     );
-    //   },
-    // );
   }
 }

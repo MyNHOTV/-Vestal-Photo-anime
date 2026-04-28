@@ -3,14 +3,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_button.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
 import 'package:flutter_quick_base/features/home/data/datasources/home_data_source.dart';
 import 'package:get/get.dart';
 
 import '../../../core/constants/export_constants.dart';
-import '../../../core/services/ads_service.dart';
 import '../../../core/widgets/grid_background.dart';
 import '../../../core/widgets/simple_app_bar.dart';
 import '../image_generation/data/datasources/aspect_ratio_data_source.dart';
@@ -33,35 +30,13 @@ class _HistoryDetailInfoScreenState extends State<HistoryDetailInfoScreen> {
     if (!hasNet) return;
 
     backCount++;
-    if (backCount % 2 != 0) {
-      AdService().loadInterstitial(
-        type: 'inter_detail',
-        onComplete: () {
-          AdService().showInterstitial(
-            'inter_detail',
-            onComplete: () async {
-              await Future.delayed(const Duration(milliseconds: 100));
-              if (mounted) {
-                setState(() {
-                  _canPop = true;
-                });
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Navigator.of(context).pop();
-                });
-              }
-            },
-          );
-        },
-      );
-    } else {
-      if (mounted) {
-        setState(() {
-          _canPop = true;
-        });
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.of(context).pop();
-        });
-      }
+    if (mounted) {
+      setState(() {
+        _canPop = true;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pop();
+      });
     }
   }
 
@@ -192,24 +167,7 @@ class _HistoryDetailInfoScreenState extends State<HistoryDetailInfoScreen> {
               ),
             ],
           ),
-          bottomNavigationBar: Obx(() {
-            if (!RemoteConfigService.shared.adsEnabled &&
-                !RemoteConfigService.shared.nativeInfoEnabled) {
-              return const SizedBox.shrink();
-            }
-            return const NativeAdWidget(
-              uniqueKey: 'native_info',
-              factoryId: 'native_small_image_top',
-              backgroundColor: Colors.white,
-              height: 210,
-              hasBorder: true,
-              margin: EdgeInsets.only(
-                  left: AppSizes.spacingM,
-                  right: AppSizes.spacingM,
-                  bottom: AppSizes.spacingM),
-              padding: EdgeInsets.zero,
-            );
-          })),
+          ),
     );
   }
 

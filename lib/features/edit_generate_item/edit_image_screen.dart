@@ -4,14 +4,11 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/extensions/context_extensions.dart';
-import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
 import 'package:flutter_quick_base/core/services/image_picker_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_button.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
 import 'package:flutter_quick_base/core/widgets/card_widget/art_item_widget.dart';
-import 'package:flutter_quick_base/core/widgets/collapsible_banner_ad_widget.dart';
 import 'package:flutter_quick_base/core/widgets/export_widgets.dart';
 import 'package:flutter_quick_base/core/widgets/grid_background.dart';
 import 'package:flutter_quick_base/features/image_generation/presentation/controllers/image_generation_controller.dart';
@@ -196,14 +193,6 @@ class _EditImageScreenState extends State<EditImageScreen> {
                     ),
                   ),
                 ),
-                Obx(() {
-                  if (!RemoteConfigService.shared.bannerChangeImageEnabled) {
-                    return const SizedBox.shrink();
-                  }
-                  return const CollapsibleBannerAdWidget(
-                    placement: 'banner_change_image',
-                  );
-                }),
               ],
             ),
           ),

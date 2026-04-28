@@ -3,17 +3,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/constants/export_constants.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
-import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
 import 'package:flutter_quick_base/core/widgets/cached_image_widget.dart';
 import 'package:flutter_quick_base/core/widgets/text_more_widget.dart';
 import 'package:flutter_quick_base/features/image_generation/domain/entities/generated_image.dart';
 import 'package:flutter_quick_base/features/image_generation/presentation/controllers/image_generation_controller.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
 
 // Enum để phân biệt item type
 enum GridItemType {
@@ -307,13 +303,7 @@ class HomeLibraryWidget extends StatelessWidget {
         final item = block.items[0];
 
         if (item.itemType == GridItemType.ad) {
-          // Trả UI quảng cáo riêng không bị cứng height
-          return Obx(() {
-            if (!RemoteConfigService.shared.adsEnabled) {
-              return const SizedBox.shrink();
-            }
-            return _buildAdItem(item.adIndex!);
-          });
+          return const SizedBox.shrink();
         }
 
         // Còn lại là image mới dùng 200
@@ -343,12 +333,7 @@ class HomeLibraryWidget extends StatelessWidget {
                           block.items[0].image!.aspectRatio,
                           block.items[0].image!,
                         )
-                      : Obx(() {
-                          if (!RemoteConfigService.shared.adsEnabled) {
-                            return const SizedBox.shrink();
-                          }
-                          return _buildAdItem(block.items[0].adIndex!);
-                        }),
+                      : const SizedBox.shrink(),
                 ),
               ),
             ),
@@ -363,12 +348,7 @@ class HomeLibraryWidget extends StatelessWidget {
                           block.items[1].image!.aspectRatio,
                           block.items[1].image!,
                         )
-                      : Obx(() {
-                          if (!RemoteConfigService.shared.adsEnabled) {
-                            return const SizedBox.shrink();
-                          }
-                          return _buildAdItem(block.items[1].adIndex!);
-                        }),
+                      : const SizedBox.shrink(),
                 ),
               ),
             ),
@@ -399,12 +379,7 @@ class HomeLibraryWidget extends StatelessWidget {
                               block.items[0].image!.aspectRatio,
                               block.items[0].image!,
                             )
-                          : Obx(() {
-                              if (!RemoteConfigService.shared.adsEnabled) {
-                                return const SizedBox.shrink();
-                              }
-                              return _buildAdItem(block.items[0].adIndex!);
-                            }),
+                          : const SizedBox.shrink(),
                     ),
                   ),
                   Padding(
@@ -420,12 +395,7 @@ class HomeLibraryWidget extends StatelessWidget {
                               block.items[1].image!.aspectRatio,
                               block.items[1].image!,
                             )
-                          : Obx(() {
-                              if (!RemoteConfigService.shared.adsEnabled) {
-                                return const SizedBox.shrink();
-                              }
-                              return _buildAdItem(block.items[1].adIndex!);
-                            }),
+                          : const SizedBox.shrink(),
                     ),
                   ),
                 ],
@@ -444,12 +414,7 @@ class HomeLibraryWidget extends StatelessWidget {
                           block.items[2].image!.aspectRatio,
                           block.items[2].image!,
                         )
-                      : Obx(() {
-                          if (!RemoteConfigService.shared.adsEnabled) {
-                            return const SizedBox.shrink();
-                          }
-                          return _buildAdItem(block.items[2].adIndex!);
-                        }),
+                      : const SizedBox.shrink(),
                 ),
               ),
             ),
@@ -475,12 +440,7 @@ class HomeLibraryWidget extends StatelessWidget {
                           block.items[0].image!.aspectRatio,
                           block.items[0].image!,
                         )
-                      : Obx(() {
-                          if (!RemoteConfigService.shared.adsEnabled) {
-                            return const SizedBox.shrink();
-                          }
-                          return _buildAdItem(block.items[0].adIndex!);
-                        }),
+                      : const SizedBox.shrink(),
                 ),
               ),
             ),
@@ -502,12 +462,7 @@ class HomeLibraryWidget extends StatelessWidget {
                               block.items[1].image!.aspectRatio,
                               block.items[1].image!,
                             )
-                          : Obx(() {
-                              if (!RemoteConfigService.shared.adsEnabled) {
-                                return const SizedBox.shrink();
-                              }
-                              return _buildAdItem(block.items[1].adIndex!);
-                            }),
+                          : const SizedBox.shrink(),
                     ),
                   ),
                   Padding(
@@ -523,12 +478,7 @@ class HomeLibraryWidget extends StatelessWidget {
                               block.items[2].image!.aspectRatio,
                               block.items[2].image!,
                             )
-                          : Obx(() {
-                              if (!RemoteConfigService.shared.adsEnabled) {
-                                return const SizedBox.shrink();
-                              }
-                              return _buildAdItem(block.items[2].adIndex!);
-                            }),
+                          : const SizedBox.shrink(),
                     ),
                   ),
                 ],
@@ -702,33 +652,6 @@ class HomeLibraryWidget extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  /// Build ad item
-  Widget _buildAdItem(int adIndex) {
-    return Obx(() {
-      if (!RemoteConfigService.shared.adsEnabled &&
-          !RemoteConfigService.shared.nativeHistoryEnabled) {
-        return const SizedBox.shrink();
-      }
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(AppSizes.radiusM),
-        child: NativeAdWidget(
-          key: Key('native_history_$adIndex'),
-          uniqueKey: 'native_history',
-          factoryId: 'native_small_image_top',
-          margin: const EdgeInsets.only(
-              left: AppSizes.spacingM,
-              right: AppSizes.spacingM,
-              bottom: AppSizes.spacingM),
-          padding: EdgeInsets.zero,
-          backgroundColor: Colors.white,
-          buttonColor: DynamicThemeService.shared.getPrimaryAccentColor(),
-          adBackgroundColor: DynamicThemeService.shared.getPrimaryAccentColor(),
-          height: 210,
-        ),
-      );
-    });
   }
 
   Widget _buildPlaceholder() {

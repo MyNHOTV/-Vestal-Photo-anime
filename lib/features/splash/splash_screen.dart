@@ -7,15 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quick_base/core/constants/export_constants.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
-import 'package:flutter_quick_base/core/services/ads_service.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/connectivity_service.dart';
-import 'package:flutter_quick_base/core/services/consent_manager.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
 import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/storage/local_storage_service.dart';
 import 'package:get/get.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:video_player/video_player.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -130,24 +127,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _initializeServices() async {
     debugPrint('SplashScreen: _initializeServices starting...');
-
-    // 1. Khởi tạo Remote Config và Consent đồng thời
-    await Future.wait([
-      RemoteConfigService.shared.init(),
-      ConsentManager.instance.gatherConsent(),
-    ]);
-
-    // 2. Sau khi Consent xong, kiểm tra quyền quảng cáo
-    final canRequestAds = await ConsentManager.instance.canRequestAds();
-    debugPrint('SplashScreen: canRequestAds = $canRequestAds');
-
-    if (canRequestAds) {
-      // Khởi tạo SDK Quảng cáo
-      await MobileAds.instance.initialize();
-      await AdService().initialize();
-    }
+    await RemoteConfigService.shared.init();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
     debugPrint('SplashScreen: _initializeServices completed.');
   }
 
@@ -179,24 +160,6 @@ class _SplashScreenState extends State<SplashScreen>
       }
     });
 
-    await _loadAndShowOpenAds();
-  }
-
-  Future<void> _loadAndShowOpenAds() async {
-    if (!mounted || _hasNavigated) return;
-
-    // Nếu không có mạng hoặc config tắt ads thì đi tiếp luôn
-    final bool adsEnabled = RemoteConfigService.shared.adsEnabled;
-    final bool appOpenEnabled = RemoteConfigService.shared.appOpenEnabled ||
-        RemoteConfigService.shared.appOpen2FloorEnabled;
-
-    if (!adsEnabled || !appOpenEnabled) {
-      debugPrint(
-          'ℹ️ SplashScreen: Ads disabled or AppOpen disabled, navigating...');
-      _navigate();
-      return;
-    }
-
     if (Get.isRegistered<NetworkService>()) {
       if (!NetworkService.to.isConnected.value) {
         debugPrint('🌐 SplashScreen: No internet, navigating...');
@@ -210,37 +173,7 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
 
-    debugPrint('⏳ SplashScreen: Loading AppOpen Ad...');
-    await AdService().loadAppOpen(
-      'splash',
-      showLoading: false,
-      onLoaded: () {
-        debugPrint('✅ SplashScreen: AppOpen Ad loaded');
-        if (!mounted || _hasNavigated) return;
-        _showOpenAds();
-      },
-      onFailed: () {
-        debugPrint('❌ SplashScreen: AppOpen Ad failed to load');
-        _navigate();
-      },
-    );
-  }
-
-  Future<void> _showOpenAds() async {
-    if (!mounted || _hasNavigated) return;
-
-    try {
-      await AdService().showAppOpen(
-        'splash',
-        onComplete: () {
-          debugPrint('🏁 SplashScreen: AppOpen Ad completed');
-          _navigate();
-        },
-      );
-    } catch (e) {
-      debugPrint('⚠️ SplashScreen: Error showing AppOpen Ad: $e');
-      _navigate();
-    }
+    _navigate();
   }
 
   void _navigate() {
@@ -276,7 +209,7 @@ class _SplashScreenState extends State<SplashScreen>
           if (Get.isDialogOpen == true) {
             Get.back();
           }
-          _loadAndShowOpenAds();
+          _navigate();
         }
       },
     );

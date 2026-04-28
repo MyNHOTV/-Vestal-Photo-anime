@@ -1,9 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
 import 'package:flutter_quick_base/features/home/data/model/image_style_model.dart';
-import 'package:get/get.dart';
 
 import '../../../../core/constants/export_constants.dart';
 
@@ -67,11 +64,6 @@ class GenerationStyleGridWidget extends StatelessWidget {
                 },
                 childCount: styles.length,
               ),
-            ),
-
-          if (styles.length >= 3)
-            SliverToBoxAdapter(
-              child: _buildMockAdNative(context),
             ),
 
           // Các phần tử còn lại (từ index 3 trở đi)
@@ -166,30 +158,6 @@ class GenerationStyleGridWidget extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  //
-  Widget _buildMockAdNative(BuildContext context) {
-    return Obx(() {
-      if (!RemoteConfigService.shared.adsEnabled &&
-          !RemoteConfigService.shared.nativeStyleEnabled) {
-        return const SizedBox.shrink();
-      }
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSizes.spacingS),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppSizes.radiusM),
-          child: NativeAdWidget(
-            margin: EdgeInsets.zero,
-            padding: EdgeInsets.zero,
-            uniqueKey: 'native_style',
-            factoryId: 'native_small_image_top',
-            backgroundColor: Colors.white,
-            height: 210,
-          ),
-        ),
-      );
-    });
   }
 
   Widget _buildPlaceholder() {

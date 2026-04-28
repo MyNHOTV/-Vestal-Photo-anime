@@ -1,21 +1,15 @@
-import 'dart:math';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/constants/export_constants.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
-import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_button.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
 import 'package:flutter_quick_base/core/widgets/cached_image_widget.dart';
-import 'package:flutter_quick_base/core/widgets/card_widget/art_item_widget.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
 import 'package:flutter_quick_base/features/image_generation/domain/entities/generated_image.dart';
 import 'package:flutter_quick_base/features/image_generation/presentation/controllers/image_generation_controller.dart';
 import 'package:get/get.dart';
-import '../../../../features/home/presentation/widget/home_library_widget.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
@@ -105,13 +99,7 @@ class LibraryScreen extends StatelessWidget {
                     return LayoutBuilder(
                       builder: (context, constraints) {
                         return SingleChildScrollView(
-                          padding: EdgeInsets.only(
-                            left: (!RemoteConfigService.shared.adsEnabled ||
-                                    !RemoteConfigService.shared
-                                        .isNativeEnabled('native_history'))
-                                ? 0
-                                : AppSizes.spacingM,
-                            // right: AppSizes.spacingM,
+                          padding: const EdgeInsets.only(
                             bottom: AppSizes.bottomNavBarHeight,
                           ),
                           child: _buildGrid(history, constraints.maxWidth),
@@ -185,46 +173,7 @@ class LibraryScreen extends StatelessWidget {
       ),
     );
 
-    // Insert ad after every row (after every 2 items)
-    // Luôn chèn ads sau row đầu tiên (rowIndex == 0), sau đó cứ 2 row lại chèn 1 ads
-    // Hoặc chèn ads sau mỗi row nếu còn item phía sau
-    if (rowIndex == 0 || endIndex < history.length) {
-      widgets.add(
-        Padding(
-          padding: const EdgeInsets.only(
-              bottom: AppSizes.spacingS, top: AppSizes.spacingS),
-          child: _buildAdItem(),
-        ),
-      );
-    }
-
     return widgets;
-  }
-
-  Widget _buildAdItem() {
-    return Obx(() {
-      if (!RemoteConfigService.shared.adsEnabled ||
-          !RemoteConfigService.shared.isNativeEnabled('native_history')) {
-        return const SizedBox.shrink();
-      }
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(AppSizes.radiusM),
-        child: NativeAdWidget(
-          uniqueKey: 'native_history',
-          factoryId: 'native_small_image_top',
-          margin: const EdgeInsets.only(
-              right: AppSizes.spacingM, bottom: AppSizes.spacingM),
-          padding: EdgeInsets.zero,
-          hasBorder: true,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.colorAE8CF5, width: 0.5),
-          backgroundColor: Colors.white,
-          height: 210,
-          buttonColor: DynamicThemeService.shared.getActiveColorADS(),
-          adBackgroundColor: DynamicThemeService.shared.getActiveColorADS(),
-        ),
-      );
-    });
   }
 
   Widget _buildImageCard(GeneratedImage image) {

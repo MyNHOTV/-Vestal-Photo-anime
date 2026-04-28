@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
-import 'package:flutter_quick_base/core/services/ads_service.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
@@ -91,40 +90,14 @@ class _GenerationFinalStepWidgetState extends State<GenerationFinalStepWidget> {
                 _buildUploadImageSection(
                   onTapEdit: () {
                     AnalyticsService.shared.actionChangeImage();
-                    // widget.controller.openImageSelection();
-                    AdService().loadInterstitial(
-                      type: 'inter_change',
-                      onComplete: () {
-                        AdService().showInterstitial(
-                          'inter_change',
-                          onComplete: () async {
-                            await Future.delayed(
-                                const Duration(milliseconds: 100));
-                            Get.toNamed(AppRoutes.editImage);
-                          },
-                        );
-                      },
-                    );
+                    Get.toNamed(AppRoutes.editImage);
                   },
                 )
               else
                 _buildUploadNoImageSection(
                   onTapEdit: () {
                     AnalyticsService.shared.actionChangeImage();
-                    // widget.controller.openImageSelection();
-                    AdService().loadInterstitial(
-                      type: 'inter_change',
-                      onComplete: () {
-                        AdService().showInterstitial(
-                          'inter_change',
-                          onComplete: () async {
-                            await Future.delayed(
-                                const Duration(milliseconds: 100));
-                            Get.toNamed(AppRoutes.editImage);
-                          },
-                        );
-                      },
-                    );
+                    Get.toNamed(AppRoutes.editImage);
                   },
                 ),
               const SizedBox(height: AppSizes.spacingM),
@@ -149,46 +122,10 @@ class _GenerationFinalStepWidgetState extends State<GenerationFinalStepWidget> {
                             styleId: widget.controller.selectedStyle.value?.id,
                             onTapEdit: () {
                               AnalyticsService.shared.actionChangeStyle();
-                              // widget.controller.openStyleSelection();
-                              AdService().loadInterstitial(
-                                type: 'inter_change',
-                                onComplete: () {
-                                  AdService().showInterstitial(
-                                    'inter_change',
-                                    onComplete: () async {
-                                      await Future.delayed(
-                                          const Duration(milliseconds: 100));
-                                      if (mounted) {
-                                        Get.toNamed(AppRoutes.editStyle);
-                                      }
-                                    },
-                                  );
-                                },
-                              );
+                              if (mounted) {
+                                Get.toNamed(AppRoutes.editStyle);
+                              }
                             }),
-                        // const SizedBox(width: AppSizes.spacingM),
-                        // Flexible(
-                        //   child: _buildAspectRatioCard(
-                        //       aspectRatio:
-                        //           widget.controller.selectedAspectRatio.value,
-                        //       onTapEdit: () {
-                        //         AnalyticsService.shared.actionChangeRatio();
-                        //         // widget.controller.openAspectRatioSelection();
-                        //         AdService().loadInterstitial(
-                        //           type: 'inter_change',
-                        //           onComplete: () {
-                        //             AdService().showInterstitial(
-                        //               'inter_change',
-                        //               onComplete: () async {
-                        //                 await Future.delayed(
-                        //                     const Duration(milliseconds: 100));
-                        //                 Get.toNamed(AppRoutes.editAspectRatio);
-                        //               },
-                        //             );
-                        //           },
-                        //         );
-                        //       }),
-                        // ),
                       ],
                     ),
                   ],

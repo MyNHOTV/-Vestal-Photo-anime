@@ -1,13 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
-import 'package:flutter_quick_base/core/services/ads_service.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
-import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_button.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
 import 'package:flutter_quick_base/features/image_detail/controller/image_detail_screen_controller.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -152,32 +148,6 @@ class ImageDetailScreen extends GetView<ImageDetailScreenController> {
 
                         const SizedBox(height: AppSizes.spacingS),
                         // Action buttons
-
-                        Obx(() {
-                          if (!RemoteConfigService.shared.adsEnabled &&
-                              !RemoteConfigService.shared.nativeImageEnabled) {
-                            return const SizedBox.shrink();
-                          }
-                          return NativeAdWidget(
-                            uniqueKey: 'native_image',
-                            factoryId: 'native_small_image_top',
-                            height: 210,
-                            margin: const EdgeInsets.only(
-                                bottom: AppSizes.spacingM,
-                                left: AppSizes.spacingM,
-                                right: AppSizes.spacingM),
-                            padding: EdgeInsets.zero,
-                            hasBorder: true,
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(
-                                color: AppColors.colorAE8CF5, width: 0.5),
-                            backgroundColor: AppColors.surface,
-                            buttonColor: DynamicThemeService.shared
-                                .getPrimaryAccentColor(),
-                            adBackgroundColor: DynamicThemeService.shared
-                                .getPrimaryAccentColor(),
-                          );
-                        }),
                         _buildNewImageButton(context),
                         const SizedBox(height: AppSizes.spacingM),
                       ],
@@ -340,38 +310,23 @@ class ImageDetailScreen extends GetView<ImageDetailScreenController> {
           final genController = Get.find<ImageGenerationController>();
           genController.resetToInitialState();
           final previous = genController.previousRoute.value;
-          // Small delay to ensure state is reset before navigation
-          AdService().loadInterstitial(
-            type: 'inter_new',
-            onComplete: () {
-              AdService().showInterstitial(
-                'inter_new',
-                onComplete: () async {
-                  await Future.delayed(const Duration(milliseconds: 100));
-                  if (previous == 'listStyle') {
-                    final styles =
-                        genController.previousListStyleStyles.toList();
-                    final groupName =
-                        genController.previousListStyleGroupName.value;
-                    Get.offNamedUntil(
-                      AppRoutes.listStyle,
-                      (route) => route.settings.name == AppRoutes.mainTabar,
-                      arguments: {
-                        'isView': true,
-                        'styles': styles,
-                        'groupName': groupName.isNotEmpty
-                            ? groupName
-                            : tr('image_style'),
-                      },
-                    );
-                  } else {
-                    // Mặc định về home
-                    Get.offAllNamed(AppRoutes.mainTabar);
-                  }
-                },
-              );
-            },
-          );
+          if (previous == 'listStyle') {
+            final styles = genController.previousListStyleStyles.toList();
+            final groupName = genController.previousListStyleGroupName.value;
+            Get.offNamedUntil(
+              AppRoutes.listStyle,
+              (route) => route.settings.name == AppRoutes.mainTabar,
+              arguments: {
+                'isView': true,
+                'styles': styles,
+                'groupName':
+                    groupName.isNotEmpty ? groupName : tr('image_style'),
+              },
+            );
+          } else {
+            // Mặc định về home
+            Get.offAllNamed(AppRoutes.mainTabar);
+          }
         },
         title: tr('new_image'),
       ),

@@ -1,20 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/constants/export_constants.dart';
-import 'package:flutter_quick_base/core/extensions/context_extensions.dart';
-import 'package:flutter_quick_base/core/routes/app_routes.dart';
-import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
-import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
-import 'package:flutter_quick_base/core/utils/export_extensions.dart';
 import 'package:flutter_quick_base/core/widgets/app_button.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
 import 'package:flutter_quick_base/core/widgets/appbar/custom_transparent_appbar.dart';
 import 'package:flutter_quick_base/core/widgets/cached_image_widget.dart';
-import 'package:flutter_quick_base/core/widgets/card_widget/art_item_widget.dart';
-import 'package:flutter_quick_base/core/widgets/confirm_watch_ad_dialog.dart';
-import 'package:flutter_quick_base/core/widgets/grid_background.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
 import 'package:flutter_quick_base/core/widgets/simple_app_bar.dart';
 import 'package:flutter_quick_base/features/image_detail/controller/image_detail_screen_controller.dart';
 import 'package:flutter_quick_base/features/image_generation/domain/entities/generated_image.dart';
@@ -68,23 +58,12 @@ class HistoryDetailScreen extends StatelessWidget {
                     nextIcon: 'ic_delete',
                     nextIconSize: 20,
                     nextIconColor: AppColors.color434A50,
-                    onNextTap: () {
-                      ConfirmWatchAdDialog.show(
-                        context: context,
-                        adCount: 1,
-                        typeImage: TypeImage.deleteImage,
-                        title: tr('delete_image'),
-                        content: tr('image_will_be_deleted_confirmation'),
-                        confirmText: tr('delete'),
-                        cancelText: tr('cancel'),
-                        onConfirm: () async {
-                          genController.deleteImage(image.id);
-                          await genController.loadHistory(refresh: true);
-                          Get.back(result: true);
-                          controller.showToastMessage(tr('delete_image'),
-                              type: 'success');
-                        },
-                      );
+                    onNextTap: () async {
+                      genController.deleteImage(image.id);
+                      await genController.loadHistory(refresh: true);
+                      Get.back(result: true);
+                      controller.showToastMessage(tr('delete_image'),
+                          type: 'success');
                     },
                   ),
                   // Image display
@@ -99,31 +78,6 @@ class HistoryDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const Expanded(child: SizedBox(height: AppSizes.spacingM)),
-                  Obx(() {
-                    if (!RemoteConfigService.shared.adsEnabled &&
-                        !RemoteConfigService.shared.nativeInfoEnabled) {
-                      return const SizedBox.shrink();
-                    }
-                    return NativeAdWidget(
-                      uniqueKey: 'native_info',
-                      factoryId: 'native_small_image_top',
-                      backgroundColor: Colors.white,
-                      margin: const EdgeInsets.only(
-                          left: AppSizes.spacingM,
-                          right: AppSizes.spacingM,
-                          bottom: AppSizes.spacingM),
-                      padding: EdgeInsets.zero,
-                      height: 210,
-                      hasBorder: true,
-                      borderRadius: BorderRadius.circular(5),
-                      border:
-                          Border.all(color: AppColors.colorAE8CF5, width: 0.5),
-                      buttonColor:
-                          DynamicThemeService.shared.getPrimaryAccentColor(),
-                      adBackgroundColor:
-                          DynamicThemeService.shared.getPrimaryAccentColor(),
-                    );
-                  }),
                   // Toast message (above share/delete buttons)
                   Obx(() => controller.showToast.value
                       ? Padding(

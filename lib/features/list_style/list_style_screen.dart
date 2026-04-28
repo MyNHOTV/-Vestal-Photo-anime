@@ -2,14 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/constants/export_constants.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
-import 'package:flutter_quick_base/core/services/ads_service.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
-import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
-import 'package:flutter_quick_base/core/utils/export_extensions.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/widgets/app_icon.dart';
-import 'package:flutter_quick_base/core/widgets/grid_background.dart';
 import 'package:flutter_quick_base/core/widgets/appbar/custom_transparent_appbar.dart';
 import 'package:flutter_quick_base/core/widgets/style_selection_dialog.dart';
 import 'package:flutter_quick_base/core/widgets/trending_style_grid_widget.dart';
@@ -19,7 +13,6 @@ import 'package:flutter_quick_base/features/home/data/model/image_style_model.da
 import 'package:flutter_quick_base/features/home/presentation/controller/home_controller.dart';
 import 'package:flutter_quick_base/features/image_generation/presentation/controllers/image_generation_controller.dart';
 import 'package:get/get.dart';
-import 'package:flutter_quick_base/core/widgets/collapsible_banner_ad_widget.dart';
 
 class ListStyleScreen extends StatefulWidget {
   const ListStyleScreen({
@@ -81,18 +74,7 @@ class _ListStyleScreenState extends State<ListStyleScreen> {
         onBackTap: () async {
           final hasNet = await NetworkService.to.checkNetworkForInAppFunction();
           if (!hasNet) return;
-          AdService().loadInterstitial(
-            type: 'inter_style',
-            onComplete: () {
-              AdService().showInterstitial(
-                'inter_style',
-                onComplete: () async {
-                  await Future.delayed(const Duration(milliseconds: 100));
-                  if (mounted) Get.back();
-                },
-              );
-            },
-          );
+          if (mounted) Get.back();
         },
       ),
       body: SingleChildScrollView(
@@ -101,15 +83,6 @@ class _ListStyleScreenState extends State<ListStyleScreen> {
             top: AppSizes.spacingM),
         child: _buildGridView(),
       ),
-      // bottomNavigationBar: Obx(() {
-      //   if (!RemoteConfigService.shared.bannerStyleEnabled) {
-      //     return const SizedBox.shrink();
-      //   }
-      //   return const CollapsibleBannerAdWidget(
-      //     placement: 'banner_style',
-      //   );
-      // }
-      // )
     );
   }
 

@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/constants/export_constants.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
-import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
 import 'package:flutter_quick_base/core/widgets/cached_image_widget.dart';
 import 'package:flutter_quick_base/core/widgets/grid_background.dart';
@@ -14,8 +12,6 @@ import 'package:flutter_quick_base/features/image_generation/domain/entities/gen
 import 'package:flutter_quick_base/features/image_generation/presentation/controllers/image_generation_controller.dart';
 import 'package:get/get.dart';
 import '../../../../features/home/presentation/widget/home_library_widget.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
-import 'package:flutter_quick_base/core/widgets/collapsible_banner_ad_widget.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
@@ -81,14 +77,6 @@ class HistoryScreen extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: Obx(() {
-        if (!RemoteConfigService.shared.bannerHistoryEnabled) {
-          return const SizedBox.shrink();
-        }
-        return const CollapsibleBannerAdWidget(
-          placement: 'banner_history',
-        );
-      }),
     );
   }
 
@@ -585,28 +573,7 @@ class HistoryScreen extends StatelessWidget {
   }
 
   Widget _buildAdItem(int adIndex) {
-    return Obx(() {
-      if (!RemoteConfigService.shared.adsEnabled &&
-          !RemoteConfigService.shared.nativeHistoryEnabled) {
-        return const SizedBox.shrink();
-      }
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(AppSizes.radiusM),
-        child: NativeAdWidget(
-          uniqueKey: 'native_history',
-          factoryId: 'native_small_image_top',
-          backgroundColor: Colors.white,
-          margin: const EdgeInsets.only(
-              left: AppSizes.spacingM,
-              right: AppSizes.spacingM,
-              bottom: AppSizes.spacingM),
-          padding: EdgeInsets.zero,
-          height: 210,
-          buttonColor: DynamicThemeService.shared.getPrimaryAccentColor(),
-          adBackgroundColor: DynamicThemeService.shared.getPrimaryAccentColor(),
-        ),
-      );
-    });
+    return const SizedBox.shrink();
   }
 
   Widget _buildPlaceholder() {

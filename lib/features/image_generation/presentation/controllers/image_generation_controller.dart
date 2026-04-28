@@ -1,10 +1,8 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/constants/app_coin.dart';
-import 'package:flutter_quick_base/core/services/ads_service.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/utils/export_extensions.dart';
@@ -19,7 +17,6 @@ import '../../../../core/services/daily_generation_service.dart';
 import '../../../../core/services/firebase_storage_service.dart';
 import '../../../../core/services/image_picker_service.dart';
 import '../../../../core/services/network_service.dart';
-import '../../../../core/widgets/confirm_watch_ad_dialog.dart';
 import '../../domain/entities/generated_image.dart';
 import '../../domain/usecases/image_generation_usecase.dart';
 
@@ -374,18 +371,7 @@ class ImageGenerationController extends GetxController {
     isGenerating.value = true;
     error.value = null;
     // Navigate to loading screen
-    AdService().loadInterstitial(
-      type: 'inter_processing',
-      onComplete: () {
-        AdService().showInterstitial(
-          'inter_processing',
-          onComplete: () async {
-            await Future.delayed(const Duration(milliseconds: 100));
-            Get.toNamed(AppRoutes.imageGenerating);
-          },
-        );
-      },
-    );
+    Get.toNamed(AppRoutes.imageGenerating);
   }
 
   /// Generate ngay lập tức với reward ad
@@ -407,83 +393,23 @@ class ImageGenerationController extends GetxController {
 
   /// Hiển thị dialog thông báo hết lượt generate
   void _showDailyLimitDialog() {
-    final adCount = RemoteConfigService.shared.adCountDailyLimitGenerate;
-    ConfirmWatchAdDialog.show(
-      context: Get.context!,
-      adCount: adCount,
-      typeImage: TypeImage.limitToday,
-      title: tr('you_have_reached_today_limit_title'),
-      content: tr('you_have_reached_today_limit_message'),
-      onConfirm: () async {
-        AnalyticsService.shared.actionGenerateLimit();
-        await _watchRewardAdAndGenerate(adCount: adCount);
-      },
-    );
+    AnalyticsService.shared.actionGenerateLimit();
+    DailyGenerationService.shared.addExtraGeneration();
+    isGenerating.value = true;
+    error.value = null;
+    Get.toNamed(AppRoutes.imageGenerating);
   }
 
   /// Hiển thị dialog xác nhận xem reward ad
   void _showRewardAdDialog() async {
-    // Check if reward quick generate is enabled
-    if (!RemoteConfigService.shared.rewardQuickGenerateEnabled &&
-        !RemoteConfigService.shared.adsEnabled) {
-      // If disabled, proceed directly (or handle as normal generation)
-      isGenerating.value = true;
-      error.value = null;
-      Get.toNamed(AppRoutes.imageGenerating);
-      return;
-    }
-
-    final adCount = RemoteConfigService
-        .shared.adCountDailyLimitGenerate; // Quick generate only needs 1 ad
-    await ConfirmWatchAdDialog.show(
-      context: Get.context!,
-      adCount: adCount,
-      currentCount: 0,
-      title: tr('watch_video_to_generate_message'),
-      onConfirm: () async {
-        await _watchRewardAdAndGenerate(adCount: adCount);
-      },
+    // Ads removed: proceed directly with fast generate
+    DailyGenerationService.shared.addExtraGeneration();
+    isGenerating.value = true;
+    error.value = null;
+    Get.toNamed(
+      AppRoutes.imageGenerating,
+      arguments: {'fastMode': true},
     );
-  }
-
-  /// Xem reward ad và generate
-  Future<void> _watchRewardAdAndGenerate({required int adCount}) async {
-    try {
-      final completer = Completer<bool>();
-
-      await AdService().loadRewarded(
-        type: 'reward_quick_generate',
-        onComplete: () async {
-          bool isRewarded = false;
-          await AdService().showRewarded(
-            onRewarded: () {
-              isRewarded = true;
-              // Thêm 1 lượt generate (optional, if daily limit logic applies)
-              DailyGenerationService.shared.addExtraGeneration();
-            },
-            onComplete: () {
-              if (!completer.isCompleted) completer.complete(isRewarded);
-            },
-          );
-        },
-      );
-
-      final rewarded = await completer.future;
-      if (rewarded) {
-        // Tiếp tục generate
-        isGenerating.value = true;
-        error.value = null;
-        Get.toNamed(
-          AppRoutes.imageGenerating,
-          arguments: {'fastMode': true},
-        );
-      } else {
-        // User closed ad early or failed to show
-        // Stay on Summary screen (do nothing)
-      }
-    } catch (e) {
-      debugPrint('Error watching reward ad: $e');
-    }
   }
 
   Future<void> executeGenerateAPI() async {

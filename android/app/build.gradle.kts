@@ -34,17 +34,16 @@ android {
         multiDexEnabled = true
     }
 
-    signingConfigs {
-        create("release") {
-            storeFile = file("key/zentrixa_phone_key.jks")
-            storePassword =  "Zentrixa@2025"
-            keyAlias = "Zentrixa"
-            keyPassword = "Zentrixa@2025"
-        }
-    }
+    // TODO: Configure release signing.
+    // Create android/key.properties (gitignored) with:
+    //   storeFile=key/your_keystore.jks
+    //   storePassword=...
+    //   keyAlias=...
+    //   keyPassword=...
+    // Then load it here and wire up signingConfigs.release.
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -54,9 +53,6 @@ android {
         }
     }
     
-}
-dependencies {
-    implementation("com.google.android.gms:play-services-ads:23.0.0")
 }
 flutter {
     source = "../.."

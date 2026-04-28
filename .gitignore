@@ -23,3 +23,23 @@ android/local.properties
 .DS_Store
 tool/build_apk.sh
 tool/check_format.sh
+
+# Secrets — must NOT be committed
+# Android keystores & signing config
+android/app/key/
+android/key.properties
+*.jks
+*.keystore
+
+# Firebase (regenerate via `flutterfire configure`)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+firebase.json
+.firebaserc
+
+# Stray SSH keys / private keys
+*.pem
+id_rsa
+id_rsa.pub
+*_rsa
+*_rsa.pub

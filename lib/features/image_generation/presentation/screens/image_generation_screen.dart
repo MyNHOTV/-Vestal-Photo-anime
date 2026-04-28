@@ -4,10 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_button.dart';
-import 'package:flutter_quick_base/core/widgets/app_icon.dart';
-import 'package:flutter_quick_base/core/widgets/collapsible_banner_ad_widget.dart';
 import 'package:flutter_quick_base/core/widgets/export_widgets.dart';
 import 'package:flutter_quick_base/core/widgets/grid_background.dart';
 import 'package:flutter_quick_base/features/image_generation/presentation/controllers/image_generation_controller.dart';
@@ -250,38 +247,7 @@ class _ImageGenerationScreenState extends State<ImageGenerationScreen> {
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    child: Obx(() => Column(
-                          children: [
-                            _buildBottomNavigation(context),
-                            //TODO:ADS HERE
-                            if (!RemoteConfigService.shared.adsEnabled)
-                              const SizedBox.shrink()
-                            else
-                              GestureDetector(
-                                  onTap: () {
-                                    switch (controller.currentStep.value) {
-                                      case GenerationStep.style:
-                                        AnalyticsService.shared
-                                            .bannerAdChooseStyleClick();
-                                        break;
-                                      case GenerationStep.image:
-                                        AnalyticsService.shared
-                                            .bannerAdChooseImageClick();
-                                        break;
-                                      case GenerationStep.generate:
-                                        AnalyticsService.shared
-                                            .bannerAdSummaryClick();
-                                        break;
-                                    }
-                                  },
-                                  child: !RemoteConfigService
-                                          .shared.bannerAdaptiveGenerateEnabled
-                                      ? const SizedBox.shrink()
-                                      : const CollapsibleBannerAdWidget(
-                                          placement: 'banner_adaptive_generate',
-                                        ))
-                          ],
-                        )),
+                    child: _buildBottomNavigation(context),
                   ),
                 ],
               ),
@@ -310,38 +276,6 @@ class _ImageGenerationScreenState extends State<ImageGenerationScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Thêm nút Immediately Generate nếu ở step generate
-                if (isLastStep &&
-                    !isEditMode &&
-                    RemoteConfigService.shared.rewardQuickGenerateEnabled &&
-                    RemoteConfigService.shared.adsEnabled)
-                  GestureDetector(
-                    onTap: () {
-                      controller.prepareImmediateGeneration();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: AppPrimaryButton(
-                        customContent: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SvgIcon(name: 'ic_watch_ads_button'),
-                            const SizedBox(width: 4),
-                            Text(
-                              tr('quick_generate'),
-                              style: kTextButtonStyle.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        // title: tr('quick_generate'),
-                        onTap: () => controller.prepareImmediateGeneration(),
-                      ),
-                    ),
-                  ),
                 Row(
                   children: [
                     if (!isEditMode &&

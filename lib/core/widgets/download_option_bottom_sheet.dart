@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
-import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
 import '../constants/export_constants.dart';
 
@@ -22,12 +21,8 @@ class DownloadOptionBottomSheet {
         withWatermarkTitle ?? tr('save_with_watermark');
     final resolvedWithoutWatermarkTitle =
         withoutWatermarkTitle ?? tr('save_without_watermark');
-    final resolvedShowWithWatermark = showWithWatermark ??
-        (RemoteConfigService.shared.adsEnabled &&
-            RemoteConfigService.shared.rewardSave1Enabled);
-    final resolvedShowWithoutWatermark = showWithoutWatermark ??
-        (RemoteConfigService.shared.adsEnabled &&
-            RemoteConfigService.shared.rewardSave3Enabled);
+    final resolvedShowWithWatermark = showWithWatermark ?? false;
+    final resolvedShowWithoutWatermark = showWithoutWatermark ?? false;
     return showModalBottomSheet(
       context: context,
       isDismissible: true,

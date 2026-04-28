@@ -3,27 +3,19 @@ import 'dart:math';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quick_base/core/extensions/context_extensions.dart';
-import 'package:flutter_quick_base/core/network/errors.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/connectivity_service.dart';
 import 'package:flutter_quick_base/core/services/daily_generation_service.dart';
-import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
 import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/widgets/app_icon.dart';
-import 'package:flutter_quick_base/core/widgets/collapsible_banner_ad_widget.dart';
-import 'package:flutter_quick_base/core/widgets/confirm_watch_ad_dialog.dart';
-import 'package:flutter_quick_base/core/widgets/native_ad_widget.dart';
 import 'package:flutter_quick_base/core/widgets/scan_line_image_widget.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/export_constants.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/widgets/export_widgets.dart';
-import '../../../../core/widgets/grid_background.dart';
 import '../controllers/image_generation_controller.dart';
-import 'package:flutter_quick_base/core/services/ads_service.dart';
 
 /// Màn hình loading khi đang generate ảnh
 class ImageGeneratingScreen extends StatefulWidget {
@@ -39,7 +31,6 @@ class _ImageGeneratingScreenState extends State<ImageGeneratingScreen>
   late Animation<double> _scannerAnimation;
 
   Timer? _progressTimer;
-  Timer? _adPollingTimer;
   double _progress = 0.0;
   bool _isGenerating = false;
   bool _hasError = false;
@@ -52,7 +43,6 @@ class _ImageGeneratingScreenState extends State<ImageGeneratingScreen>
 
   ImageGenerationController? _controller;
   StreamSubscription? _connectivitySubscription;
-  StreamSubscription? _adClosedSubscription;
 
   // Thời gian random cho giai đoạn 61-99%
   late Duration _randomDuration;
@@ -64,12 +54,6 @@ class _ImageGeneratingScreenState extends State<ImageGeneratingScreen>
   int _savedPhase2Step = 0;
   bool _wasInPhase2 = false;
   bool _hasStartedProgress = false;
-  bool _isShowingResumeAd = false; // Flag để tránh show app open ad nhiều lần
-  DateTime? _lastResumeTime; // Thời gian resume cuối cùng để debounce
-  bool _resumeAdShown =
-      false; // Flag để đánh dấu đã show resume ad trong lần resume này
-  DateTime?
-      _lastAdClosedTime; // Thời gian ad đóng cuối cùng để tránh show lại ngay
   bool _fastMode = false;
 
   @override
@@ -118,8 +102,13 @@ class _ImageGeneratingScreenState extends State<ImageGeneratingScreen>
       _setupController();
       AnalyticsService.shared.screenProcessingShow();
 
-      // Đợi ad đóng hoàn toàn rồi mới bắt đầu progress
-      _waitForAdToClose();
+      // Bắt đầu progress ngay lập tức
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && !_isDisposed && !_hasStartedProgress) {
+          _hasStartedProgress = true;
+          _startProgress();
+        }
+      });
     } catch (e) {
       print('Error in initState: $e');
       // Fallback: navigate back nếu có lỗi
@@ -254,86 +243,6 @@ class _ImageGeneratingScreenState extends State<ImageGeneratingScreen>
         }
       });
     }
-  }
-
-  void _waitForAdToClose() {
-    if (!mounted || _isDisposed || _hasStartedProgress) return;
-
-    final adService = AdService();
-
-    // Kiểm tra nếu ad đang hiển thị
-    if (adService.isShowingFullScreenAd) {
-      print('⏳ Ad is showing, waiting for it to close...');
-
-      // Đợi ad đóng qua stream
-      _adClosedSubscription = adService.onAdClosed.listen((_) {
-        if (!mounted || _isDisposed || _hasStartedProgress) return;
-
-        print('✅ Ad closed, starting progress');
-        // Đợi một chút để đảm bảo ad đã đóng hoàn toàn
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted && !_isDisposed && !_hasStartedProgress) {
-            _hasStartedProgress = true;
-            _startProgress();
-          }
-        });
-      });
-
-      // Fallback: Polling để kiểm tra khi ad đóng
-      _pollForAdClose();
-      return;
-    }
-
-    // Nếu ad không đang show, kiểm tra nếu ad vừa đóng
-    if (adService.adJustClosed) {
-      // Ad vừa đóng, đợi một chút rồi bắt đầu
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted && !_isDisposed && !_hasStartedProgress) {
-          _hasStartedProgress = true;
-          _startProgress();
-        }
-      });
-      return;
-    }
-
-    // Nếu không có ad, bắt đầu progress ngay
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted && !_isDisposed && !_hasStartedProgress) {
-        _hasStartedProgress = true;
-        _startProgress();
-      }
-    });
-  }
-
-  void _pollForAdClose() {
-    if (!mounted || _isDisposed || _hasStartedProgress) return;
-
-    final adService = AdService();
-
-    // Polling mỗi 100ms để kiểm tra khi ad đóng
-    _adPollingTimer =
-        Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (!mounted || _isDisposed || _hasStartedProgress) {
-        timer.cancel();
-        _adPollingTimer = null;
-        return;
-      }
-
-      // Nếu ad đã đóng
-      if (!adService.isShowingFullScreenAd) {
-        timer.cancel();
-        _adPollingTimer = null;
-        print('✅ Ad closed (detected by polling), starting progress');
-
-        // Đợi một chút để đảm bảo ad đã đóng hoàn toàn
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted && !_isDisposed && !_hasStartedProgress) {
-            _hasStartedProgress = true;
-            _startProgress();
-          }
-        });
-      }
-    });
   }
 
   void _startProgress() {
@@ -817,36 +726,43 @@ class _ImageGeneratingScreenState extends State<ImageGeneratingScreen>
         });
         return;
       }
-      ConfirmWatchAdDialog.show(
-          context: Get.context!,
-          adCount: 1,
-          typeImage: TypeImage.sessionExpired,
-          title: tr('session_expired'),
-          confirmText: tr('retry'),
-          onConfirm: () async {
-            try {
-              setState(() {
-                _isErrorDialogShowing = false; // Reset flag
-              });
-              _retryAPI();
-            } catch (e) {
-              print('Error in dialog confirm: $e');
-            }
-          },
-          onCancel: () {
-            try {
-              setState(() {
-                _isErrorDialogShowing = false; // Reset flag khi đóng dialog
-              });
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-              Get.back();
-            } catch (e) {
-              print('Error in dialog cancel: $e');
-            }
-          });
-      // Show error dialog
+      // Show simple error dialog without ad confirmation
+      showDialog(
+        context: Get.context!,
+        builder: (ctx) => AlertDialog(
+          title: Text(tr('session_expired')),
+          actions: [
+            TextButton(
+              onPressed: () {
+                try {
+                  setState(() {
+                    _isErrorDialogShowing = false;
+                  });
+                  Navigator.pop(ctx);
+                  Get.back();
+                } catch (e) {
+                  print('Error in dialog cancel: $e');
+                }
+              },
+              child: Text(tr('cancel')),
+            ),
+            TextButton(
+              onPressed: () {
+                try {
+                  setState(() {
+                    _isErrorDialogShowing = false;
+                  });
+                  Navigator.pop(ctx);
+                  _retryAPI();
+                } catch (e) {
+                  print('Error in dialog confirm: $e');
+                }
+              },
+              child: Text(tr('retry')),
+            ),
+          ],
+        ),
+      );
     } catch (e) {
       setState(() {
         _isErrorDialogShowing = false; // Reset flag nếu có lỗi
@@ -983,136 +899,18 @@ class _ImageGeneratingScreenState extends State<ImageGeneratingScreen>
       } else if (state == AppLifecycleState.resumed) {
         if (_isAppInBackground && _isGenerating) {
           _isAppInBackground = false;
-
-          // Kiểm tra nếu ad vừa đóng (trong vòng 3 giây), không show lại
-          final now = DateTime.now();
-          if (_lastAdClosedTime != null &&
-              now.difference(_lastAdClosedTime!).inSeconds < 3) {
-            print(
-                '⏸️ Ad just closed, skipping show (${now.difference(_lastAdClosedTime!).inSeconds}s ago)');
-            // Chỉ resume progress, không show ad
-            Future.delayed(const Duration(milliseconds: 300), () {
-              if (mounted && !_isDisposed && _isGenerating) {
-                _resumeFromSavedProgress();
-              }
-            });
-            return;
-          }
-
-          // Reset flags trước khi show ad để đảm bảo mỗi lần resume đều show
-          // (Flags sẽ được set lại trong _showAppOpenAdAndResume)
-          _resumeAdShown = false;
-          _isShowingResumeAd = false;
-
-          // Mỗi lần resume từ background, show ads 1 lần
-          // Show app open ad trước, sau đó resume
-          print('📱 App resumed, showing resume ad...');
-          _showAppOpenAdAndResume();
+          // Resume progress directly (no ads)
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted && !_isDisposed && _isGenerating) {
+              _resumeFromSavedProgress();
+            }
+          });
         } else {
           _isAppInBackground = false;
         }
-      } else if (state == AppLifecycleState.paused ||
-          state == AppLifecycleState.inactive) {
-        // Reset flag khi app vào background để lần resume tiếp theo có thể show ad
-        _resumeAdShown = false;
-        _isShowingResumeAd =
-            false; // Reset flag showing để lần resume tiếp theo có thể show
-        _lastAdClosedTime =
-            null; // Reset thời gian ad đóng để lần resume tiếp theo có thể show ads
-        print('🔄 Reset resume ad flags when app goes to background');
       }
     } catch (e) {
       print('Error in lifecycle state change: $e');
-    }
-  }
-
-  Future<void> _showAppOpenAdAndResume() async {
-    if (!mounted || _isDisposed || _isShowingResumeAd) {
-      print(
-          '⚠️ Skip showing resume ad: mounted=$mounted, disposed=$_isDisposed, showing=$_isShowingResumeAd');
-      return;
-    }
-
-    // Kiểm tra thêm: Nếu ad đang show hoặc vừa đóng, không show lại
-    final adService = AdService();
-    if (adService.isShowingFullScreenAd || adService.adJustClosed) {
-      print('⚠️ Skip showing resume ad: ad is showing or just closed');
-      // Resume progress luôn
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted && !_isDisposed && _isGenerating) {
-          _resumeFromSavedProgress();
-        }
-      });
-      return;
-    }
-
-    _isShowingResumeAd = true; // Set flag để tránh show nhiều lần
-    _resumeAdShown = true; // Đánh dấu đã show ad trong lần resume này
-    print('📱 Starting to show resume ad...');
-
-    try {
-      // Load và show app open ad
-      await adService.loadAppOpen(
-        'resume',
-        onLoaded: () async {
-          if (!mounted || _isDisposed) {
-            _isShowingResumeAd = false;
-            return;
-          }
-
-          // Kiểm tra lại trước khi show
-          if (adService.isShowingFullScreenAd || adService.adJustClosed) {
-            print('⚠️ Ad is already showing or just closed, skip');
-            _isShowingResumeAd = false;
-            _resumeFromSavedProgress();
-            return;
-          }
-
-          print('📱 Showing resume ad...');
-          await adService.showAppOpen(
-            'resume',
-            onComplete: () {
-              print('✅ Resume ad closed');
-              _isShowingResumeAd = false;
-              _resumeAdShown =
-                  false; // Reset để lần resume tiếp theo có thể show lại
-              _lastAdClosedTime = DateTime
-                  .now(); // Lưu thời gian ad đóng để tránh show lại ngay
-
-              // Đợi một chút để đảm bảo ad đã đóng hoàn toàn và không trigger lại
-              Future.delayed(const Duration(milliseconds: 800), () {
-                if (mounted && !_isDisposed && _isGenerating) {
-                  print(
-                      '▶️ Resuming progress from: ${_savedProgress.toStringAsFixed(1)}%');
-                  _resumeFromSavedProgress();
-                }
-              });
-            },
-          );
-        },
-        onFailed: () {
-          print('❌ Resume ad failed to load');
-          _isShowingResumeAd = false;
-          _resumeAdShown =
-              false; // Reset để lần resume tiếp theo có thể show lại
-          // Không set _lastAdClosedTime vì ad không được show
-          // Nếu không load được ad, resume luôn
-          if (mounted && !_isDisposed && _isGenerating) {
-            print(
-                '▶️ Resuming progress from: ${_savedProgress.toStringAsFixed(1)}% (no ad)');
-            _resumeFromSavedProgress();
-          }
-        },
-        showLoading: false,
-      );
-    } catch (e) {
-      print('Error showing app open ad: $e');
-      _isShowingResumeAd = false;
-      _resumeAdShown = false; // Reset để lần resume tiếp theo có thể show lại
-      // Nếu có lỗi, resume luôn
-      if (mounted && !_isDisposed && _isGenerating) {
-        _resumeFromSavedProgress();
-      }
     }
   }
 
@@ -1142,18 +940,6 @@ class _ImageGeneratingScreenState extends State<ImageGeneratingScreen>
       _connectivitySubscription?.cancel();
     } catch (e) {
       print('Error canceling connectivity subscription: $e');
-    }
-
-    try {
-      _adClosedSubscription?.cancel();
-    } catch (e) {
-      print('Error canceling ad closed subscription: $e');
-    }
-
-    try {
-      _adPollingTimer?.cancel();
-    } catch (e) {
-      print('Error canceling ad polling timer: $e');
     }
 
     super.dispose();
@@ -1195,39 +981,44 @@ class _ImageGeneratingScreenState extends State<ImageGeneratingScreen>
     debugPrint(
         '⏸️ Back pressed during generation - pausing: ${_progress.toStringAsFixed(1)}%');
 
-    // Show dialog
-    await ConfirmWatchAdDialog.show(
+    // Show simple confirm dialog (no ads)
+    await showDialog(
       context: context,
-      adCount: 1,
-      typeImage: TypeImage.beingCreated,
-      title: tr('image_being_created'),
-      content: tr('canceling_will_stop_image_creation_are_you_sure'),
-      confirmText: tr('keep_generating'),
-      cancelText: tr('stop'),
-      onConfirm: () async {
-        // Resume generation
-        if (mounted && !_isDisposed) {
-          _isPaused = false;
-          _isManualBack = false;
-          if (_controller != null) {
-            _controller!.isGenerating.value = true;
-          }
-          _resumeFromSavedProgress();
-          debugPrint('▶️ Resuming generation after confirm');
-        }
-      },
-      onCancel: () {
-        Get.back();
-        // Thoát ra
-        if (_fastMode) {
-          DailyGenerationService.shared.useGeneration();
-        }
-        _isManualBack = true;
-        if (_controller != null) {
-          _controller!.isGenerating.value = false;
-        }
-        Get.back();
-      },
+      builder: (ctx) => AlertDialog(
+        title: Text(tr('image_being_created')),
+        content: Text(tr('canceling_will_stop_image_creation_are_you_sure')),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              if (_fastMode) {
+                DailyGenerationService.shared.useGeneration();
+              }
+              _isManualBack = true;
+              if (_controller != null) {
+                _controller!.isGenerating.value = false;
+              }
+              Get.back();
+            },
+            child: Text(tr('stop')),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              if (mounted && !_isDisposed) {
+                _isPaused = false;
+                _isManualBack = false;
+                if (_controller != null) {
+                  _controller!.isGenerating.value = true;
+                }
+                _resumeFromSavedProgress();
+                debugPrint('▶️ Resuming generation after confirm');
+              }
+            },
+            child: Text(tr('keep_generating')),
+          ),
+        ],
+      ),
     );
 
     return false; // Không thoát ngay, đợi user chọn
@@ -1361,36 +1152,11 @@ class _ImageGeneratingScreenState extends State<ImageGeneratingScreen>
                         ),
                       ),
                     ),
-                    Obx(() {
-                      if (!RemoteConfigService.shared
-                          .isNativeEnabled('native_generating')) {
-                        return const SizedBox.shrink();
-                      }
-                      return NativeAdWidget(
-                        uniqueKey: 'native_generating',
-                        factoryId: 'native_small_image_top',
-                        hasBorder: true,
-                        backgroundColor: AppColors.surface,
-                        buttonColor:
-                            DynamicThemeService.shared.getActiveColorADS(),
-                        adBackgroundColor:
-                            DynamicThemeService.shared.getActiveColorADS(),
-                        height: 220,
-                      );
-                    }),
                   ],
                 ),
               ),
             ],
-          ),
-          bottomNavigationBar: Obx(() {
-            if (!RemoteConfigService.shared.bannerProcessingEnabled) {
-              return const SizedBox.shrink();
-            }
-            return const CollapsibleBannerAdWidget(
-              placement: 'banner_processing',
-            );
-          })),
+          )),
     );
   }
 }
