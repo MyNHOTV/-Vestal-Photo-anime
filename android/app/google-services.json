@@ -1,0 +1,64 @@
+{
+  "project_info": {
+    "project_number": "623090011752",
+    "firebase_url": "https://photo-anime-b288f-default-rtdb.firebaseio.com",
+    "project_id": "photo-anime-b288f",
+    "storage_bucket": "photo-anime-b288f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:623090011752:android:504f9fa83147c668ffb5dd",
+        "android_client_info": {
+          "package_name": "com.ai.anime.art.generator.photo.create.pixaiart"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "623090011752-arkpo1mdjroalt2044f831jubb72esqa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ai.anime.art.generator.photo.create.pixaiart",
+            "certificate_hash": "581fa8de7555a238575411d782a0c11684a95a80"
+          }
+        },
+        {
+          "client_id": "623090011752-rg5f69iel40shtr47on5eifd6d8iopv8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ai.anime.art.generator.photo.create.pixaiart",
+            "certificate_hash": "c42a892ea86221d05d884a5db68f791fa84594e8"
+          }
+        },
+        {
+          "client_id": "623090011752-ef0kr4mfubdr1t18b7rg1eob39uvoq16.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZ3vbL81ZC0GsQsxCtruPZXQcWnolROHI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "623090011752-ef0kr4mfubdr1t18b7rg1eob39uvoq16.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "623090011752-kc6jvbfl3f6rt0kt1dvinaq0nrfemoes.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ai.anime.art.generator.photo.create.pixaiart"
+              }
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-4916271104673099~9260992471"
+    }
+  ],
+  "configuration_version": "1"
+}

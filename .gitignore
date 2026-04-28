@@ -1,0 +1,25 @@
+# Flutter & Dart
+.dart_tool/
+.packages
+build/
+pubspec.lock
+
+# IntelliJ / VSCode
+.idea/
+.vscode/
+*.iml
+
+# Xcode
+ios/Pods/
+ios/DerivedData/
+*.xcworkspace/
+
+# Android
+android/.gradle/
+android/local.properties
+
+# Misc
+*.log
+.DS_Store
+tool/build_apk.sh
+tool/check_format.sh

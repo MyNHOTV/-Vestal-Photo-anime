@@ -1,0 +1,172 @@
+import 'dart:async';
+
+import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_quick_base/core/services/analytics_service.dart';
+import 'package:flutter_quick_base/core/services/app_check_service.dart';
+import 'package:flutter_quick_base/core/services/appmetrica_service.dart';
+
+import 'package:flutter_quick_base/core/services/crashlytics_service.dart';
+import 'package:flutter_quick_base/core/services/remote_config_service.dart';
+import 'package:flutter_quick_base/core/services/screen_protector.dart';
+import 'package:flutter_quick_base/features/home/data/datasources/home_data_source.dart';
+import 'package:get/get.dart';
+
+import 'app.dart';
+import 'core/config/app_config.dart';
+import 'core/di/injection_container.dart';
+import 'core/services/connectivity_service.dart';
+import 'core/services/daily_generation_service.dart';
+import 'core/storage/local_storage_service.dart';
+import 'firebase_options.dart';
+
+Future<void> main() async {
+  runZonedGuarded<Future<void>>(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+
+    await EasyLocalization.ensureInitialized();
+
+    try {
+      // Initialize Firebase
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      AnalyticsService.shared.init();
+      // Initialize Crashlytics
+      await CrashlyticsService.shared.init();
+      CrashlyticsService.shared.log('App started');
+      // Initialize AppMetrica
+      await AppMetricaService.shared.init(
+        apiKey: "a6107e11-82c9-4080-99f5-8da6c857b4d8",
+      );
+      // Initialize AppsFlyer
+      // await AppsFlyerService.shared.init(
+      //   devKey: dotenv.env['APPSFLYER_DEV_KEY'] ?? '',
+      //   appId: dotenv.env['APPSFLYER_APP_ID'] ?? '',
+      // );
+      // Initialize App Check
+      await AppCheckService.shared.init();
+    } catch (e, stack) {
+      // Nếu Firebase init fail, vẫn tiếp tục nhưng log error
+      await CrashlyticsService.shared
+          .recordError(e, stack, reason: 'Firebase init failed');
+    }
+
+    // Initialize Local Storage
+    await LocalStorageService.shared.init();
+
+    // Initialize Daily Generation Service
+    await DailyGenerationService.shared.init();
+
+    // Initialize Connectivity Service
+    await ConnectivityService.shared.init();
+
+    // Initialize Remote Config Service
+    await RemoteConfigService.shared.init();
+    if (ConnectivityService.shared.isConnected) {
+      unawaited(
+        HomeDataSource.fetchImageStyles().catchError((error) {
+          print('Error fetching image styles in main: $error');
+        }),
+      );
+      unawaited(
+        HomeDataSource.fetchImageStyleGroups().catchError((error) {
+          print('Error fetching group in main: $error');
+        }),
+      );
+    }
+
+    // Listen connectivity changes để fetch khi mạng về
+    ever(ConnectivityService.shared.connectivityStatus, (results) {
+      if (ConnectivityService.shared.isConnected) {
+        // Mạng về, fetch styles nếu cần
+        HomeDataSource.fetchWhenOnline().catchError((error) {
+          print('Error fetching image styles when online: $error');
+        });
+      }
+    });
+
+    // Flavors via --dart-define
+    const flavor = String.fromEnvironment('FLAVOR', defaultValue: 'dev');
+    const enableLog = bool.fromEnvironment('ENABLE_LOG', defaultValue: true);
+
+    await dotenv.load(fileName: _envFileFor(flavor));
+
+    AppConfig.init(
+      flavor: flavor,
+      enableLog: enableLog,
+      baseUrl: dotenv.env['API_BASE_URL'] ?? '',
+    );
+
+    // Initialize Dependency Injection
+    InjectionContainer.init();
+
+    runApp(
+      EasyLocalization(
+        supportedLocales: const [
+          Locale('en'),
+          Locale('vi'),
+          Locale('hi'),
+          Locale('es'),
+          Locale('fr'),
+          Locale('pt'),
+          Locale('ja'),
+          Locale('ko'),
+          Locale('tr'),
+          Locale('de'),
+          Locale('hr'),
+          Locale('hu'),
+          Locale('id'),
+          Locale('it'),
+          Locale('ne'),
+          Locale('th'),
+          Locale('uk'),
+          Locale('zh'),
+          Locale('ar'),
+        ],
+        path: 'assets/i18n',
+        fallbackLocale: const Locale('en'),
+        startLocale: const Locale('en'),
+        child: const QuickBaseApp(),
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final shouldEnable =
+          RemoteConfigService.shared.shouldEnableScreenProtection;
+      ScreenProtectorService.shared.setProtection(shouldEnable);
+    });
+    ever(RemoteConfigService.shared.enableScreenProtection, (bool enable) {
+      ScreenProtectorService.shared.setProtection(enable);
+      print(
+          'Screen protection ${enable ? "enabled" : "disabled"} (updated from Remote Config)');
+    });
+  }, (error, stack) {
+    // Error handler cho runZonedGuarded
+    CrashlyticsService.shared.recordError(
+      error,
+      stack,
+      reason: 'Uncaught async error in runZonedGuarded',
+      fatal: true,
+    );
+  });
+}
+
+String _envFileFor(String flavor) {
+  switch (flavor) {
+    case 'prod':
+      return '.env.prod';
+    case 'stg':
+      return '.env.stg';
+    case 'dev':
+    default:
+      return '.env.dev';
+  }
+}
