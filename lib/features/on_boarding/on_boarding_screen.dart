@@ -8,6 +8,7 @@ import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/dynamic_theme_service.dart';
 import 'package:flutter_quick_base/core/services/network_service.dart';
 import 'package:flutter_quick_base/core/services/firebase_messaging_service.dart';
+import 'package:flutter_quick_base/main.dart';
 import 'package:flutter_quick_base/core/storage/local_storage_service.dart';
 import 'package:get/get.dart';
 
@@ -84,9 +85,11 @@ class OnboardingScreenState extends State<OnboardingScreen> {
     AnalyticsService.shared.actionCompleteOb();
     await LocalStorageService.shared.put('has_completed_onboarding', true);
     Get.offAllNamed(AppRoutes.mainTabar);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FirebaseMessagingService.shared.markAppReady();
-    });
+    if (kFirebaseEnabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        FirebaseMessagingService.shared.markAppReady();
+      });
+    }
   }
 
   void _nextPage() {
@@ -109,7 +112,7 @@ class OnboardingScreenState extends State<OnboardingScreen> {
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         body: Stack(children: [
           SafeArea(
             child: PageView.builder(

@@ -38,7 +38,9 @@ class FirebaseMessagingService {
   static final FirebaseMessagingService shared =
       FirebaseMessagingService._internal();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  // Lazy: tránh crash khi Firebase chưa init.
+  FirebaseMessaging? __messaging;
+  FirebaseMessaging get _messaging => __messaging ??= FirebaseMessaging.instance;
 
   // Stream controller để lắng nghe token changes
   final _tokenController = StreamController<String?>.broadcast();

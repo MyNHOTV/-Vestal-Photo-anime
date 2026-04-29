@@ -1,4 +1,3 @@
-import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:get/get.dart';
 
 class MainTabbarController extends GetxController {
@@ -17,18 +16,14 @@ class MainTabbarController extends GetxController {
   }
 
   void changeTab(int index) {
-    if (index != currentIndex.value && index >= 0 && index < 4) {
+    if (index != currentIndex.value && index >= 0 && index < 2) {
       currentIndex.value = index;
       _initializeTab(index);
     }
   }
 
-  void navigateToGenerate() {
-    changeTab(2); // Tab 2 (index 2) is AiToolScreen
-  }
-
   void navigateToLibrary() {
-    changeTab(3); // Tab 3 (index 3) is LibraryScreen
+    changeTab(1); // Tab 1 is LibraryScreen
   }
 
   void _initializeTab(int index) {

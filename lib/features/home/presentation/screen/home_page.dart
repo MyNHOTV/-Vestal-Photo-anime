@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quick_base/core/routes/app_routes.dart';
 import 'package:flutter_quick_base/core/services/analytics_service.dart';
 import 'package:flutter_quick_base/core/services/firebase_messaging_service.dart';
+import 'package:flutter_quick_base/main.dart';
 import 'package:flutter_quick_base/core/widgets/style_selection_dialog.dart';
 import 'package:flutter_quick_base/core/widgets/style_group_section_widget.dart';
 import 'package:flutter_quick_base/features/image_generation/presentation/controllers/image_generation_controller.dart';
@@ -21,9 +22,11 @@ class HomePage extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     // Đánh dấu app đã sẵn sàng và xử lý pending navigation nếu có
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FirebaseMessagingService.shared.markAppReady();
-    });
+    if (kFirebaseEnabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        FirebaseMessagingService.shared.markAppReady();
+      });
+    }
 
     final screenSize = MediaQuery.of(context).size;
     final headerHeight = screenSize.height / 2.6;
@@ -33,7 +36,7 @@ class HomePage extends GetView<HomeController> {
       child: Scaffold(
         extendBody: true,
         extendBodyBehindAppBar: true,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         body: SizedBox.expand(
           child: Stack(
             children: [

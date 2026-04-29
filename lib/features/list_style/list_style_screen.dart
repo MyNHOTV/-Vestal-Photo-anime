@@ -63,7 +63,7 @@ class _ListStyleScreenState extends State<ListStyleScreen> {
   Widget build(BuildContext context) {
     final isEditMode = widget.fromGeneration && widget.isView == false;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: CustomTransparentAppBar(
         colors: AppColors.surface,
         title: widget.groupName ?? tr('image_style'),

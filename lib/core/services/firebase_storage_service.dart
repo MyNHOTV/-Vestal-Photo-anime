@@ -26,7 +26,9 @@ class FirebaseStorageService extends GetxService {
   static final FirebaseStorageService shared =
       FirebaseStorageService._internal();
 
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  // Lazy: tránh crash khi Firebase chưa init.
+  FirebaseStorage? __storage;
+  FirebaseStorage get _storage => __storage ??= FirebaseStorage.instance;
 
   /// Upload ảnh từ file path và lấy download URL
   ///

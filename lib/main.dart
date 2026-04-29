@@ -21,6 +21,10 @@ import 'core/services/daily_generation_service.dart';
 import 'core/storage/local_storage_service.dart';
 import 'firebase_options.dart';
 
+// TODO: Set to true after running `flutterfire configure` and adding
+// google-services.json + GoogleService-Info.plist.
+const bool kFirebaseEnabled = false;
+
 Future<void> main() async {
   runZonedGuarded<Future<void>>(() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -37,22 +41,21 @@ Future<void> main() async {
 
     await dotenv.load(fileName: _envFileFor(flavor));
 
-    try {
-      // Initialize Firebase
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
+    if (kFirebaseEnabled) {
+      try {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
 
-      AnalyticsService.shared.init();
-      // Initialize Crashlytics
-      await CrashlyticsService.shared.init();
-      CrashlyticsService.shared.log('App started');
-      // Initialize App Check
-      await AppCheckService.shared.init();
-    } catch (e, stack) {
-      // Nếu Firebase init fail, vẫn tiếp tục nhưng log error
-      await CrashlyticsService.shared
-          .recordError(e, stack, reason: 'Firebase init failed');
+        AnalyticsService.shared.init();
+        await CrashlyticsService.shared.init();
+        CrashlyticsService.shared.log('App started');
+        await AppCheckService.shared.init();
+      } catch (e, stack) {
+        debugPrint('Firebase init failed: $e\n$stack');
+      }
+    } else {
+      debugPrint('Firebase disabled (kFirebaseEnabled=false)');
     }
 
     // Initialize Local Storage
@@ -64,8 +67,10 @@ Future<void> main() async {
     // Initialize Connectivity Service
     await ConnectivityService.shared.init();
 
-    // Initialize Remote Config Service
-    await RemoteConfigService.shared.init();
+    // Initialize Remote Config Service (skips if Firebase disabled)
+    if (kFirebaseEnabled) {
+      await RemoteConfigService.shared.init();
+    }
     if (ConnectivityService.shared.isConnected) {
       unawaited(
         HomeDataSource.fetchImageStyles().catchError((error) {
@@ -138,13 +143,16 @@ Future<void> main() async {
           'Screen protection ${enable ? "enabled" : "disabled"} (updated from Remote Config)');
     });
   }, (error, stack) {
-    // Error handler cho runZonedGuarded
-    CrashlyticsService.shared.recordError(
-      error,
-      stack,
-      reason: 'Uncaught async error in runZonedGuarded',
-      fatal: true,
-    );
+    if (kFirebaseEnabled) {
+      CrashlyticsService.shared.recordError(
+        error,
+        stack,
+        reason: 'Uncaught async error in runZonedGuarded',
+        fatal: true,
+      );
+    } else {
+      debugPrint('Uncaught async error: $error\n$stack');
+    }
   });
 }
 

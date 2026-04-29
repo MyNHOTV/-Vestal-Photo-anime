@@ -20,17 +20,17 @@ class AppColors {
   static const Color error = Color(0xFFF44336);
   static const Color info = Color(0xFF2196F3);
 
-  // Neutral colors
-  static const Color background = Color(0xFFF5F5F5);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF757575);
-  static const Color divider = Color(0xFFBDBDBD);
-  static const Color disableColorText = Color(0xFFA9A9A9);
-  static const Color buttonDefaultColor = Color(0xFFEEEEEE);
+  // Neutral colors — dark theme tokens
+  static const Color background = Color(0xFF121212);
+  static const Color surface = Color(0xFF1E1E1E);
+  static const Color textPrimary = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color(0xFFB0B0B0);
+  static const Color divider = Color(0xFF2A2A2A);
+  static const Color disableColorText = Color(0xFF6B6B6B);
+  static const Color buttonDefaultColor = Color(0xFF2A2A2A);
   static const Color colorBlack = Color(0xFF000000);
 
-  // Dark theme colors
+  // Dark theme aliases (kept for backward compat with existing references)
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkSurface = Color(0xFF1E1E1E);
   static const Color darkTextPrimary = Color(0xFFFFFFFF);

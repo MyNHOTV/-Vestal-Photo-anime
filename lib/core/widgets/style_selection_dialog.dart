@@ -64,14 +64,14 @@ class StyleSelectionDialog extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppSizes.radiusL),
                     child: AspectRatio(
                       aspectRatio: 3 / 4,
-                      child: style.imageUrl != null
-                          ? CachedImageWidget(
-                              imagePath: style.imageUrl!,
+                      child: style.imageAsset != null
+                          ? Image.asset(
+                              style.imageAsset!,
                               fit: BoxFit.cover,
                             )
-                          : style.imageAsset != null
+                          : style.imageUrl != null
                               ? Image.asset(
-                                  style.imageAsset!,
+                                  style.imageUrl!,
                                   fit: BoxFit.cover,
                                 )
                               : Container(

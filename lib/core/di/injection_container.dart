@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_quick_base/core/services/remote_config_service.dart';
 import 'package:flutter_quick_base/core/services/screen_protector.dart';
+import 'package:flutter_quick_base/main.dart';
 import 'package:get/get.dart';
 import '../../features/home/presentation/controller/home_controller.dart';
 import '../../features/image_generation/data/datasources/generated_image_local_datasource.dart';
@@ -23,10 +24,12 @@ import '../storage/local_storage_service.dart';
 class InjectionContainer {
   static void init() {
     // Services
-    Get.put<FirebaseStorageService>(
-      FirebaseStorageService.shared,
-      permanent: true,
-    );
+    if (kFirebaseEnabled) {
+      Get.put<FirebaseStorageService>(
+        FirebaseStorageService.shared,
+        permanent: true,
+      );
+    }
 
     Get.put<DailyGenerationService>(
       DailyGenerationService.shared,
@@ -52,10 +55,12 @@ class InjectionContainer {
     );
 
     // Firebase Messaging Service
-    Get.put<FirebaseMessagingService>(
-      FirebaseMessagingService.shared,
-      permanent: true,
-    );
+    if (kFirebaseEnabled) {
+      Get.put<FirebaseMessagingService>(
+        FirebaseMessagingService.shared,
+        permanent: true,
+      );
+    }
 
     // Network Service
     Get.put<NetworkService>(
