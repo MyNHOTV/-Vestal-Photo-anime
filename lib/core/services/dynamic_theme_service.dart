@@ -108,9 +108,9 @@ class DynamicThemeService extends GetxService {
   String getSplashScreenAsset() {
     switch (currentTheme.value) {
       case DynamicTheme.COLOR_PINK:
-        return 'assets/icons/splash_screen.png';
+        return 'assets/image/new_logo.png';
       case DynamicTheme.COLOR_BLUE:
-        return 'assets/icons/splash_screen.png';
+        return 'assets/image/new_logo.png';
     }
   }
 
