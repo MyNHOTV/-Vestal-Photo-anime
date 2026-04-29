@@ -55,11 +55,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: '',
-    appId: '',
-    messagingSenderId: '',
-    projectId: '',
-    storageBucket: '',
+    apiKey: 'AIzaSyDHRqMkUbMjVy5xhmEYrXgH0cVAWRqQbDk',
+    appId: '1:914318176345:android:24351584d694aa9b228148',
+    messagingSenderId: '914318176345',
+    projectId: 'ai-image-ab4f6',
+    storageBucket: 'ai-image-ab4f6.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

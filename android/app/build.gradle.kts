@@ -1,8 +1,7 @@
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
-    // TODO: Re-enable after running `flutterfire configure` and adding google-services.json
-    // id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
     // END: FlutterFire Configuration
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.

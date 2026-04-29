@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -21,9 +23,9 @@ import 'core/services/daily_generation_service.dart';
 import 'core/storage/local_storage_service.dart';
 import 'firebase_options.dart';
 
-// TODO: Set to true after running `flutterfire configure` and adding
-// google-services.json + GoogleService-Info.plist.
-const bool kFirebaseEnabled = false;
+// Firebase được cấu hình cho Android (google-services.json + firebase_options.dart).
+// iOS chưa có GoogleService-Info.plist thực → bỏ qua để app vẫn build/chạy được.
+final bool kFirebaseEnabled = !kIsWeb && Platform.isAndroid;
 
 Future<void> main() async {
   runZonedGuarded<Future<void>>(() async {
